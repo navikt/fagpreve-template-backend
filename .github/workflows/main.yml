@@ -14,12 +14,28 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Fetch all history for what-changed action
+          fetch-depth: 0
       - name: Determine what to do
         id: changed-files
-        uses: "nais/what-changed@main"
+        uses: nais/what-changed@main
         with:
           files: .nais/app.yaml
+      - name: Setup Java
+        if: steps.changed-files.outputs.changed != 'only-inputs'
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: gradle
+
+      - name: Make gradlew executable
+        if: steps.changed-files.outputs.changed != 'only-inputs'
+        run: chmod +x ./gradlew
+
+      - name: Build backend
+        if: steps.changed-files.outputs.changed != 'only-inputs'
+        run: ./gradlew bootJar
+
       - name: Build and push image and SBOM to OCI registry
         if: steps.changed-files.outputs.changed != 'only-inputs'
         uses: nais/docker-build-push@v0
@@ -30,6 +46,7 @@ jobs:
       - name: Deploy to Nais
         uses: nais/deploy/actions/deploy@v2
         env:
-          CLUSTER: dev-gcp # Replace
-          RESOURCE: .nais/app.yaml # This points to the file we created in the previous step
-          WORKLOAD_IMAGE: ${{ steps.docker-build-push.outputs.image }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/app.yaml
+          VAR: image=${{ steps.docker-build-push.outputs.image }}
+          TELEMETRY: ${{ steps.docker-build-push.outputs.telemetry }}
