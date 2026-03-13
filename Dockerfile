@@ -8,4 +8,4 @@ WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
 ENV TZ="Europe/Oslo"
 EXPOSE 8081
-CMD ["java", "-jar", "app.jar"]
+CMD ["-jar", "app.jar"]
