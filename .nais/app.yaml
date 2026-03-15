@@ -5,14 +5,13 @@ metadata:
   namespace: laerlinger
   labels:
     team: laerlinger
+
 spec:
   image: {{image}}
   port: 8081
 
   ingresses:
     - https://fagprove-backend.intern.dev.nav.no
-
-  ttl: 3h
 
   replicas:
     min: 1
